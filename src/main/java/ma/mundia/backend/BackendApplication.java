@@ -6,6 +6,7 @@ import ma.mundia.backend.enums.OperationType;
 import ma.mundia.backend.repositories.AccountOperationRepository;
 import ma.mundia.backend.repositories.BankAccountRepository;
 import ma.mundia.backend.repositories.CustomerRepository;
+import ma.mundia.backend.services.BankService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,6 +23,12 @@ public class BackendApplication {
         SpringApplication.run(BackendApplication.class, args);
     }
     @Bean
+    CommandLineRunner commandLineRunner(BankService bankService) {
+        return args -> {
+           bankService.consulter();
+        };
+    }
+    //@Bean
     CommandLineRunner start(CustomerRepository customerRepository,
                             BankAccountRepository bankAccountRepository,
                             AccountOperationRepository accountOperationRepository) {
@@ -60,6 +67,8 @@ public class BackendApplication {
                     accountOperation.setBankAccount(acc);
                     accountOperationRepository.save(accountOperation);
                 }
+
+
             });
         };
     }
