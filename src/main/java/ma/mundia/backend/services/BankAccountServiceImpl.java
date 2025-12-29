@@ -2,10 +2,7 @@ package ma.mundia.backend.services;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import ma.mundia.backend.dtos.BankAccountDTO;
-import ma.mundia.backend.dtos.CurrentBankAccountDTO;
-import ma.mundia.backend.dtos.CustomerDTO;
-import ma.mundia.backend.dtos.SavingBankAccountDTO;
+import ma.mundia.backend.dtos.*;
 import ma.mundia.backend.entities.*;
 import ma.mundia.backend.enums.OperationType;
 import ma.mundia.backend.exceptions.BalanceNotSufficientException;
@@ -15,9 +12,13 @@ import ma.mundia.backend.mappers.BankAccountMapperImpl;
 import ma.mundia.backend.repositories.AccountOperationRepository;
 import ma.mundia.backend.repositories.BankAccountRepository;
 import ma.mundia.backend.repositories.CustomerRepository;
+import org.hibernate.query.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.security.auth.login.AccountNotFoundException;
+import java.awt.print.Pageable;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -176,6 +177,27 @@ public class BankAccountServiceImpl implements BankAccountService {
     public void deleteCustomer(Long customerID) throws CustomerNotFoundException {
         customerRepository.deleteById(customerID);
     }
+    @Override
+    public List<AccountOperationDTO> accountHistory(String accountId){
+        List<AccountOperation> accountOperations = accountOperationRepository.findByBankAccountId(accountId);
+        return accountOperations.stream().map(op->dtoMapper.fromAccountOperation(op)).collect(Collectors.toList());
 
+    }
+
+    @Override
+    public AccountOperationDTO getAccountHistory(String accountId, int page, int size) throws BankAccountNotFoundException {
+        BankAccount bankAccount= bankAccountRepository.findById(accountId).orElse(null);
+        if (bankAccount == null) throw new BankAccountNotFoundException("Account Not Found");
+        Page<AccountOperation> accountOperations = accountOperationRepository.findByBankAccountId(accountId, (Pageable) PageRequest.of(page,size));
+        AccountHistoryDTO accountHistoryDTO = new AccountHistoryDTO();
+        List <AccountOperationDTO>accountOperationDTOS = accountOperations.getContent().stream().map(op->dtoMapper.fromAccountOperation(op)).collect(Collectors.toList());
+        accountHistoryDTO.setAccountOperationDTO(accountOperations.getContent());
+        accountHistoryDTO.setAccountId(bankAccount.getId());
+        accountHistoryDTO.setBalance(bankAccount.getBalance());
+        accountHistoryDTO.setPageSize(page);
+        accountHistoryDTO.setPageSize(size);
+        accountHistoryDTO.setTotalPage(accountHistoryDTO.getTotalPage());
+        return accountHistoryDTO;
+    }
 
 }

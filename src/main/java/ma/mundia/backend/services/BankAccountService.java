@@ -1,9 +1,6 @@
 package ma.mundia.backend.services;
 
-import ma.mundia.backend.dtos.BankAccountDTO;
-import ma.mundia.backend.dtos.CurrentBankAccountDTO;
-import ma.mundia.backend.dtos.CustomerDTO;
-import ma.mundia.backend.dtos.SavingBankAccountDTO;
+import ma.mundia.backend.dtos.*;
 import ma.mundia.backend.entities.BankAccount;
 import ma.mundia.backend.entities.CurrentAccount;
 import ma.mundia.backend.entities.Customer;
@@ -33,4 +30,8 @@ public interface BankAccountService {
     CustomerDTO updateCustomer(CustomerDTO customerDTO);
 
     void deleteCustomer(Long customerID) throws CustomerNotFoundException;
+
+    List<AccountOperationDTO> accountHistory(String accountId);
+
+    AccountOperationDTO getAccountHistory(String accountId, int page, int size) throws BankAccountNotFoundException;
 }
