@@ -1,11 +1,19 @@
 package ma.mundia.backend;
 
+import ma.mundia.backend.dtos.BankAccountDTO;
+import ma.mundia.backend.dtos.CurrentBankAccountDTO;
+import ma.mundia.backend.dtos.CustomerDTO;
+import ma.mundia.backend.dtos.SavingBankAccountDTO;
 import ma.mundia.backend.entities.*;
 import ma.mundia.backend.enums.AccountStatus;
 import ma.mundia.backend.enums.OperationType;
+import ma.mundia.backend.exceptions.BalanceNotSufficientException;
+import ma.mundia.backend.exceptions.BankAccountNotFoundException;
+import ma.mundia.backend.exceptions.CustomerNotFoundException;
 import ma.mundia.backend.repositories.AccountOperationRepository;
 import ma.mundia.backend.repositories.BankAccountRepository;
 import ma.mundia.backend.repositories.CustomerRepository;
+import ma.mundia.backend.services.BankAccountService;
 import ma.mundia.backend.services.BankService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -13,6 +21,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -23,9 +32,38 @@ public class BackendApplication {
         SpringApplication.run(BackendApplication.class, args);
     }
     @Bean
-    CommandLineRunner commandLineRunner(BankService bankService) {
+    CommandLineRunner commandLineRunner(BankAccountService bankAccountService) {
         return args -> {
-           bankService.consulter();
+           Stream.of("Hassan","Imane","Mohammed").forEach(name -> {
+               CustomerDTO customer = new CustomerDTO();
+               customer.setName(name);
+               customer.setEmail(name+"@gmail.com");
+               bankAccountService.saveCustomer(customer);
+           });
+           bankAccountService.listCustomers().forEach(customer -> {
+               try {
+                   bankAccountService.saveCurrentBankAccount(Math.random()*9000,9000,customer.getId());
+                   bankAccountService.saveSavingBankAccount(Math.random()*12000,5.5,customer.getId());
+                   List<BankAccountDTO> bankAccounts =bankAccountService.bankAccountList();
+                   for (BankAccountDTO bankAccount : bankAccounts) {
+                       for (int i = 0; i <10; i++){
+                           String accountId;
+                           if(bankAccount instanceof SavingBankAccountDTO){
+                               accountId =((SavingBankAccountDTO) bankAccount).getId();
+                           }else{
+                               accountId=((CurrentBankAccountDTO) bankAccount).getId();
+                           }
+                           bankAccountService.credit(accountId,10000+Math.random()*120000,"Credit");
+                           bankAccountService.debit(accountId,1000+Math.random()*9000,"Debit");
+                       }
+
+                   }
+               } catch (CustomerNotFoundException e) {
+                   e.printStackTrace();
+               }catch (BankAccountNotFoundException | BalanceNotSufficientException e) {
+                   e.printStackTrace();
+               }
+           });
         };
     }
     //@Bean

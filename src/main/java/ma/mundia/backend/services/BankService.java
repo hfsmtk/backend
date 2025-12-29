@@ -1,13 +1,13 @@
 package ma.mundia.backend.services;
 
 
-import jakarta.transaction.Transactional;
 import ma.mundia.backend.entities.BankAccount;
 import ma.mundia.backend.entities.CurrentAccount;
 import ma.mundia.backend.entities.SavingAccount;
 import ma.mundia.backend.repositories.BankAccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
